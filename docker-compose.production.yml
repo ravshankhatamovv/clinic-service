@@ -1,7 +1,6 @@
 volumes:
   geo_production_postgres_data: {}
   geo_production_postgres_data_backups: {}
-  geo_production_django_media: {}
   geo_production_redis_data: {}
 
 
@@ -14,7 +13,8 @@ services:
 
     image: chop_geo_production_django
     volumes:
-      - geo_production_django_media:/app/chop_geo/media
+      - /var/www/geo.leetcode.uz/media:/app/media
+      - /var/www/geo.leetcode.uz/static:/app/staticfiles
     depends_on:
       - postgres
       - redis

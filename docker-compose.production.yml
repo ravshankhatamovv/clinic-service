@@ -36,10 +36,8 @@ services:
 
   redis:
     image: docker.io/redis:6
-
     volumes:
-      - production_redis_data:/data
-
+      - geo_production_redis_data:/data
 
   celeryworker:
     <<: *django
@@ -50,13 +48,3 @@ services:
     <<: *django
     image: chop_geo_production_celerybeat
     command: /start-celerybeat
-
-  nginx:
-    build:
-      context: .
-      dockerfile: ./compose/production/nginx/Dockerfile
-    image: chop_geo_production_nginx
-    depends_on:
-      - django
-    volumes:
-      - geo_production_django_media:/usr/share/nginx/media:ro

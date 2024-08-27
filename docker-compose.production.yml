@@ -22,6 +22,8 @@ services:
       - ./.envs/.production/.django
       - ./.envs/.production/.postgres
     command: /start
+    ports:
+      - "9095:5000"
 
   postgres:
     build:
@@ -43,8 +45,10 @@ services:
     <<: *django
     image: chop_geo_production_celeryworker
     command: /start-celeryworker
+    ports: [ ]
 
   celerybeat:
     <<: *django
     image: chop_geo_production_celerybeat
     command: /start-celerybeat
+    ports: [ ]

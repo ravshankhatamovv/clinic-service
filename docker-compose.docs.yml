@@ -1,0 +1,16 @@
+services:
+  docs:
+    image: chop_geo_local_docs
+    container_name: chop_geo_local_docs
+    build:
+      context: .
+      dockerfile: ./compose/local/docs/Dockerfile
+    env_file:
+      - ./.envs/.local/.django
+    volumes:
+      - ./docs:/docs:z
+      - ./config:/app/config:z
+      - ./chop_geo:/app/chop_geo:z
+    ports:
+      - '9000:9000'
+    command: /start-docs

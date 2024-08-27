@@ -1,0 +1,62 @@
+volumes:
+  geo_production_postgres_data: {}
+  geo_production_postgres_data_backups: {}
+  geo_production_django_media: {}
+  geo_production_redis_data: {}
+
+
+
+services:
+  django: &django
+    build:
+      context: .
+      dockerfile: ./compose/production/django/Dockerfile
+
+    image: chop_geo_production_django
+    volumes:
+      - geo_production_django_media:/app/chop_geo/media
+    depends_on:
+      - postgres
+      - redis
+    env_file:
+      - ./.envs/.production/.django
+      - ./.envs/.production/.postgres
+    command: /start
+
+  postgres:
+    build:
+      context: .
+      dockerfile: ./compose/production/postgres/Dockerfile
+    image: chop_geo_production_postgres
+    volumes:
+      - geo_production_postgres_data:/var/lib/postgresql/data
+      - geo_production_postgres_data_backups:/backups
+    env_file:
+      - ./.envs/.production/.postgres
+
+  redis:
+    image: docker.io/redis:6
+
+    volumes:
+      - production_redis_data:/data
+
+
+  celeryworker:
+    <<: *django
+    image: chop_geo_production_celeryworker
+    command: /start-celeryworker
+
+  celerybeat:
+    <<: *django
+    image: chop_geo_production_celerybeat
+    command: /start-celerybeat
+
+  nginx:
+    build:
+      context: .
+      dockerfile: ./compose/production/nginx/Dockerfile
+    image: chop_geo_production_nginx
+    depends_on:
+      - django
+    volumes:
+      - geo_production_django_media:/usr/share/nginx/media:ro

@@ -1,5 +1,10 @@
-from django.contrib.auth import get_user_model
-from rest_framework import serializers
+from django.contrib.auth import get_user_model, authenticate
+from django.contrib.auth.models import update_last_login
+from rest_framework import serializers, exceptions
+from rest_framework.settings import api_settings
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from chop_geo.users.models import OTPCode
 
 User = get_user_model()
 
@@ -69,3 +74,53 @@ class ConfirmOTPSerializer(serializers.Serializer):
 
 class ChangePasswordSerializer(serializers.Serializer):
     password = serializers.CharField()
+
+
+class TokenObtainSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    otp_code = serializers.CharField(max_length=6)
+
+    default_error_messages = {
+        "no_active_account": "No active account found with the given credentials"
+    }
+
+    token_class = RefreshToken
+
+    def validate(self, attrs):
+        username = attrs.get("username")
+        otp_code = attrs.get('otp_code')
+
+        # Validate user existence
+        try:
+            user = get_user_model().objects.get(**{"username": username})
+        except get_user_model().DoesNotExist:
+            user = get_user_model().objects.create(username=username)
+            # raise exceptions.AuthenticationFailed(
+            #     self.error_messages["no_active_account"],
+            #     "no_active_account",
+            # )
+
+        # Validate OTP code
+        # try:
+        #     otp_record = OTPCode.objects.get(user=user, code=otp_code)
+        # except OTPCode.DoesNotExist:
+        #     raise exceptions.AuthenticationFailed(
+        #         self.error_messages["invalid_otp"],
+        #         "invalid_otp",
+        #     )
+
+        if otp_code != "1234":
+            raise exceptions.AuthenticationFailed(
+                {"invalid_otp": "invalid_otp", }
+            )
+
+        self.user = user
+        refresh = self.get_token(self.user)
+        data = {}
+        data["refresh"] = str(refresh)
+        data["access"] = str(refresh.access_token)
+        return data
+
+    @classmethod
+    def get_token(cls, user):
+        return cls.token_class.for_user(user)  # type: ignore

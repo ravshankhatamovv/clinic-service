@@ -22,7 +22,7 @@ from chop_geo.users.serializers import (
     UserSerializer,
     UserEmailResetSerializer,
     ConfirmOTPSerializer, ChangePasswordSerializer,
-    CreateUserSerializer, UpdateUserSerializer
+    CreateUserSerializer, UpdateUserSerializer, TokenObtainSerializer
 )
 
 User = get_user_model()
@@ -70,6 +70,7 @@ class UserUpdateViewSet(generics.UpdateAPIView):
 @extend_schema(tags=[TOKEN_TAG])
 class MyTokenObtainPairView(TokenObtainPairView):
     permission_classes = (AllowAny,)
+    serializer_class = TokenObtainSerializer
 
     def post(self, request, *args, **kwargs):  # noqa
         response = super().post(request, *args, **kwargs)

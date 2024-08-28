@@ -1,6 +1,7 @@
 from rest_framework import viewsets, generics, permissions
 from .models import VehicleTrajectoryRoute, VehicleTrajectory, Vehicle
-from .serializers import VehicleTrajectoryRouteSerializer, VehicleTrajectorySerializer
+from .serializers import VehicleTrajectoryRouteSerializer, VehicleTrajectorySerializer, \
+    BulkVehicleTrajectorySerializer, VehicleTrajectoryCreateSerializer
 
 
 class VehicleTrajectoryRouteViewSet(viewsets.ReadOnlyModelViewSet):
@@ -19,4 +20,17 @@ class VehicleTrajectoryCreateAPIView(generics.CreateAPIView):
             vehicle = self.request.user.vehicle
         except Vehicle.DoesNotExist:
             vehicle = Vehicle.objects.create(user=self.request.user)
+        serializer.save(vehicle=vehicle)
+
+
+class BulkVehicleTrajectoryCreateAPIView(generics.CreateAPIView):
+    queryset = VehicleTrajectory.objects.all()
+    serializer_class = VehicleTrajectoryCreateSerializer
+
+    def perform_create(self, serializer):
+        try:
+            vehicle = self.request.user.vehicle
+        except Vehicle.DoesNotExist:
+            vehicle = Vehicle.objects.create(user=self.request.user)
+        # Additional logic to prevent multiple objects creation
         serializer.save(vehicle=vehicle)

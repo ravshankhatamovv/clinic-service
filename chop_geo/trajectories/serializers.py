@@ -15,3 +15,18 @@ class VehicleTrajectorySerializer(serializers.ModelSerializer):
     class Meta:
         model = VehicleTrajectory
         fields = ['timestamp', 'location']
+
+
+class BulkVehicleTrajectorySerializer(serializers.ListSerializer):
+    def create(self, validated_data):
+        trajectories = [VehicleTrajectory(**item) for item in validated_data]
+        return VehicleTrajectory.objects.bulk_create(trajectories)
+
+
+class VehicleTrajectoryCreateSerializer(serializers.ModelSerializer):
+    location = GeometryField()
+
+    class Meta:
+        model = VehicleTrajectory
+        fields = ['timestamp', 'location']
+        list_serializer_class = BulkVehicleTrajectorySerializer

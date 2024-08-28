@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import VehicleTrajectoryRoute, VehicleTrajectory
+from rest_framework_gis.serializers import GeometryField
 
 
 class VehicleTrajectoryRouteSerializer(serializers.ModelSerializer):
@@ -9,6 +10,8 @@ class VehicleTrajectoryRouteSerializer(serializers.ModelSerializer):
 
 
 class VehicleTrajectorySerializer(serializers.ModelSerializer):
+    location = GeometryField()
+
     class Meta:
         model = VehicleTrajectory
         fields = ['timestamp', 'location']

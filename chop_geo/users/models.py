@@ -4,6 +4,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db.models import CharField, UUIDField
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from django.db import models
 
 
 class User(AbstractUser):
@@ -27,3 +28,11 @@ class User(AbstractUser):
 
         """
         return reverse("users:detail", kwargs={"username": self.username})
+
+
+class OTPCode(models.Model):
+    code = models.CharField(max_length=6)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="otp")
+
+    def __str__(self):
+        return f"{self.user} | {self.code}"

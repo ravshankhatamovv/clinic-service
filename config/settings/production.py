@@ -111,7 +111,6 @@ INSTALLED_APPS += ["anymail"]
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 ANYMAIL = {}
 
-
 # LOGGING
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#logging
@@ -180,3 +179,4 @@ SPECTACULAR_SETTINGS["SERVERS"] = [
 ]
 # Your stuff...
 # ------------------------------------------------------------------------------
+SIMPLE_JWT['SIGNING_KEY'] = SECRET_KEY

@@ -86,7 +86,7 @@ class TokenObtainSerializer(serializers.Serializer):
         model_name = attrs.get("model_name")
         otp_code = attrs.get('otp_code')
 
-        user, _created = get_user_model().objects.get_or_create(
+        user, _created = get_user_model().objects.update_or_create(
             username=username, defaults={"name": name, "model_name": model_name})
 
         # Validate OTP code

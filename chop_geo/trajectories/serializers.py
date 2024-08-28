@@ -19,12 +19,18 @@ class VehicleTrajectorySerializer(serializers.ModelSerializer):
 
 class BulkVehicleTrajectorySerializer(serializers.ListSerializer):
     def create(self, validated_data):
-        trajectories = [VehicleTrajectory(**item) for item in validated_data]
+        trajectories_data = validated_data['trajectories']
+        trajectories = [VehicleTrajectory(**item) for item in trajectories_data]
         return VehicleTrajectory.objects.bulk_create(trajectories)
 
 
-class VehicleTrajectoryCreateSerializer(serializers.ModelSerializer):
+class VehicleTrajectoryCreateSerializer(serializers.Serializer):
+    data = VehicleTrajectorySerializer(many=True, write_only=True)
 
-    class Meta:
-        model = VehicleTrajectory
-        fields = ['timestamp', 'location']
+    def create(self, validated_data):
+        trajectories_list = validated_data['data']
+        vehicle = validated_data['vehicle']
+
+        trajectories = [VehicleTrajectory(**item, vehicle=vehicle) for item in trajectories_list]
+        VehicleTrajectory.objects.bulk_create(trajectories)
+        return {"status": "ok"}

@@ -1,22 +1,13 @@
-import logging
 
-from django.conf import settings
-from drf_spectacular.utils import extend_schema
 from rest_framework import generics
 
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
-from django.utils.crypto import get_random_string
-from django.core.mail import send_mail
-from django.contrib.auth.hashers import make_password
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from chop_geo.users.models import OTPCode
 from chop_geo.users.serializers import (
     UserMeSerializer,
     UserSerializer,

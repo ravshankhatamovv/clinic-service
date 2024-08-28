@@ -1,10 +1,6 @@
-from django.contrib.auth import get_user_model, authenticate
-from django.contrib.auth.models import update_last_login
+from django.contrib.auth import get_user_model
 from rest_framework import serializers, exceptions
-from rest_framework.settings import api_settings
 from rest_framework_simplejwt.tokens import RefreshToken
-
-from chop_geo.users.models import OTPCode
 
 User = get_user_model()
 
@@ -15,10 +11,10 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'name']
 
 
-class CreateUserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ["username", "name", "model_name"]
+class CreateUserSerializer(serializers.Serializer):
+    username = serializers.CharField(required=True)
+    name = serializers.CharField(required=False)
+    model_name = serializers.CharField(required=False)
 
     def create(self, validated_data):
         username = validated_data.get("username")
@@ -30,7 +26,7 @@ class CreateUserSerializer(serializers.ModelSerializer):
         if name:
             data["name"] = name
         user, _updated = get_user_model().objects.update_or_create(
-            username=username, defaults=data if data else None)
+            username=username, defaults=data)
         return user
 
 
@@ -59,21 +55,6 @@ class UpdateUserSerializer(serializers.ModelSerializer):
 
 class UserMeSerializer(serializers.Serializer):
     user = UserSerializer(many=False)
-
-
-class UserEmailResetSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-
-
-class ConfirmOTPSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-    code = serializers.CharField()
-    access = serializers.CharField(read_only=True)
-    refresh = serializers.CharField(read_only=True)
-
-
-class ChangePasswordSerializer(serializers.Serializer):
-    password = serializers.CharField()
 
 
 class TokenObtainSerializer(serializers.Serializer):

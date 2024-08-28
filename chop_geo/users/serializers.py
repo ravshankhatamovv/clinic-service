@@ -21,8 +21,16 @@ class CreateUserSerializer(serializers.ModelSerializer):
         fields = ["username", "name", "model_name"]
 
     def create(self, validated_data):
-        user = User(**validated_data)
-        user.save()
+        username = validated_data.get("username")
+        name = validated_data.get("name")
+        model_name = validated_data.get("model_name")
+        data = {}
+        if model_name:
+            data["model_name"] = model_name
+        if name:
+            data["name"] = name
+        user, _updated = get_user_model().objects.update_or_create(
+            username=username, defaults=data if data else None)
         return user
 
 
@@ -70,8 +78,6 @@ class ChangePasswordSerializer(serializers.Serializer):
 
 class TokenObtainSerializer(serializers.Serializer):
     username = serializers.CharField()
-    name = serializers.CharField(allow_blank=True, allow_null=True, required=False)
-    model_name = serializers.CharField(allow_blank=True, allow_null=True, required=False)
     otp_code = serializers.CharField(max_length=6)
 
     default_error_messages = {
@@ -85,9 +91,13 @@ class TokenObtainSerializer(serializers.Serializer):
         name = attrs.get("name")
         model_name = attrs.get("model_name")
         otp_code = attrs.get('otp_code')
-
+        data = {}
+        if model_name:
+            data["model_name"] = model_name
+        if name:
+            data["name"] = name
         user, _created = get_user_model().objects.update_or_create(
-            username=username, defaults={"name": name, "model_name": model_name})
+            username=username, defaults=data if data else None)
 
         # Validate OTP code
         # try:

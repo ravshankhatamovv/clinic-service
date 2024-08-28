@@ -16,7 +16,8 @@ class User(AbstractUser):
 
     # First and last name do not cover name patterns around the globe
     id = UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = CharField(_("Name of User"), blank=True, max_length=255)
+    name = CharField(_("Name of User"), blank=True, null=True, max_length=255)
+    model_name = CharField(_("Name of Model"), blank=True, null=True, max_length=255)
     first_name = None  # type: ignore[assignment]
     last_name = None  # type: ignore[assignment]
 

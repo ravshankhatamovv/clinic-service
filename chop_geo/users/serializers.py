@@ -78,6 +78,8 @@ class ChangePasswordSerializer(serializers.Serializer):
 
 class TokenObtainSerializer(serializers.Serializer):
     username = serializers.CharField()
+    name = serializers.CharField(allow_blank=True, allow_null=True, required=False)
+    model_name = serializers.CharField(allow_blank=True, allow_null=True, required=False)
     otp_code = serializers.CharField(max_length=6)
 
     default_error_messages = {
@@ -88,17 +90,12 @@ class TokenObtainSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         username = attrs.get("username")
+        name = attrs.get("name")
+        model_name = attrs.get("model_name")
         otp_code = attrs.get('otp_code')
 
-        # Validate user existence
-        try:
-            user = get_user_model().objects.get(**{"username": username})
-        except get_user_model().DoesNotExist:
-            user = get_user_model().objects.create(username=username)
-            # raise exceptions.AuthenticationFailed(
-            #     self.error_messages["no_active_account"],
-            #     "no_active_account",
-            # )
+        user, _created = get_user_model().objects.get_or_create(
+            username=username, defaults={"name": name, "model_name": model_name})
 
         # Validate OTP code
         # try:

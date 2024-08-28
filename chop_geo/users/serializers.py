@@ -18,18 +18,10 @@ class UserSerializer(serializers.ModelSerializer):
 class CreateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        exclude = ["is_staff", "groups", "user_permissions"]
-        extra_kwargs = {
-            'password': {'write_only': True},
-            'last_login': {'read_only': True},
-            'date_joined': {'read_only': True},
-            'is_superuser': {'read_only': True},
-        }
+        fields = ["username", "name", "model_name"]
 
     def create(self, validated_data):
-        password = validated_data.pop('password')
         user = User(**validated_data)
-        user.set_password(password)
         user.save()
         return user
 

@@ -24,9 +24,7 @@ class BulkVehicleTrajectorySerializer(serializers.ListSerializer):
 
 
 class VehicleTrajectoryCreateSerializer(serializers.ModelSerializer):
-    location = GeometryField()
 
     class Meta:
         model = VehicleTrajectory
         fields = ['timestamp', 'location']
-        list_serializer_class = BulkVehicleTrajectorySerializer

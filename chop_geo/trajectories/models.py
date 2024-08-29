@@ -11,7 +11,7 @@ class Vehicle(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="vehicle")
 
     def __str__(self):
-        return self.user.name
+        return str(self.user.name)
 
 
 class VehicleTrajectory(models.Model):
@@ -20,7 +20,7 @@ class VehicleTrajectory(models.Model):
     location = geomodels.PointField()
 
     def __str__(self):
-        return f'{self.vehicle.user.name} - {self.timestamp}'
+        return f'{str(self.vehicle.user.name)} - {self.timestamp}'
 
 
 class VehicleTrajectoryRoute(models.Model):
@@ -30,7 +30,7 @@ class VehicleTrajectoryRoute(models.Model):
     end_time = models.DateTimeField()
 
     def __str__(self):
-        return f'Route for {self.vehicle.user.name} from {self.start_time} to {self.end_time}'
+        return f'Route for {str(self.vehicle.user.name)} from {self.start_time} to {self.end_time}'
 
     @staticmethod
     def generate_trajectory(vehicle):

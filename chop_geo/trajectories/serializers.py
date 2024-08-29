@@ -16,7 +16,7 @@ class VehicleTrajectorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = VehicleTrajectory
-        fields = ['timestamp', 'location']
+        fields = ['timestamp', 'location', 'bluetooth']
 
 
 class VehicleTrajectoryCreateSerializer(serializers.Serializer):

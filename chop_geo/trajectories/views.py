@@ -1,7 +1,8 @@
 from rest_framework import viewsets, generics, permissions
 from .models import VehicleTrajectoryRoute, VehicleTrajectory, Vehicle
-from .serializers import VehicleTrajectoryRouteSerializer, VehicleTrajectorySerializer, \
-    BulkVehicleTrajectorySerializer, VehicleTrajectoryCreateSerializer
+from .serializers import (
+    VehicleTrajectoryRouteSerializer, VehicleTrajectorySerializer,
+    VehicleTrajectoryCreateSerializer)
 
 
 class VehicleTrajectoryRouteViewSet(viewsets.ReadOnlyModelViewSet):

@@ -90,6 +90,7 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     "chop_geo.users",
     "chop_geo.trajectories",
+    "chop_geo.bluetooth",
     # Your stuff: custom apps go here
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps

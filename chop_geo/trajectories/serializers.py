@@ -30,7 +30,7 @@ class VehicleTrajectoryCreateSerializer(serializers.Serializer):
         bluetooths = []
         for trajectory in trajectories_list:
             bluetooth_count = trajectory.pop("bluetooth", None)
-            if bluetooth_count:
+            if bluetooth_count > 0:
                 bluetooths.append(
                     BluetoothCount(vehicle=vehicle,
                                    count=bluetooth_count,

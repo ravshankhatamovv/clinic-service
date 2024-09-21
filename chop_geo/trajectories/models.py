@@ -30,7 +30,7 @@ class VehicleTrajectoryRoute(models.Model):
     end_time = models.DateTimeField()
 
     def __str__(self):
-        return f'Route for {str(self.vehicle.user.username)} from {self.start_time} to {self.end_time}'
+        return f'Route for {str(self.vehicle.user.username)}'
 
     @staticmethod
     def generate_trajectory(vehicle):

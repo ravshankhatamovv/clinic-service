@@ -11,6 +11,7 @@ class VehicleAdmin(admin.ModelAdmin):
 @admin.register(VehicleTrajectoryRoute)
 class VehicleTrajectoryRouteAdmin(admin.ModelAdmin):
     form = VehicleTrajectoryRouteForm
+    list_display = ["__str__", "start_time", "end_time"]
 
 
 @admin.register(VehicleTrajectory)

@@ -2,7 +2,8 @@ from rest_framework import viewsets, generics, permissions
 from .models import VehicleTrajectoryRoute, VehicleTrajectory, Vehicle
 from .serializers import (
     VehicleTrajectoryRouteSerializer, VehicleTrajectorySerializer,
-    VehicleTrajectoryCreateSerializer)
+    VehicleTrajectoryCreateSerializer, VehicleSerializer, VehicleDetailSerializer
+)
 
 
 class VehicleTrajectoryRouteViewSet(viewsets.ReadOnlyModelViewSet):
@@ -35,3 +36,30 @@ class BulkVehicleTrajectoryCreateAPIView(generics.CreateAPIView):
             vehicle = Vehicle.objects.create(user=self.request.user)
         # Additional logic to prevent multiple objects creation
         serializer.save(vehicle=vehicle)
+
+
+class DriverListView(generics.ListAPIView):
+    queryset = Vehicle.objects.all()
+    serializer_class = VehicleSerializer
+
+
+class DriverDetailView(generics.RetrieveAPIView):
+    queryset = Vehicle.objects.all()
+    serializer_class = VehicleDetailSerializer
+    lookup_field = 'pk'  # можно использовать 'guid', если это основной идентификатор
+
+
+class DriverPointsListView(generics.ListAPIView):
+    serializer_class = VehicleTrajectorySerializer
+
+    def get_queryset(self):
+        vehicle_id = self.kwargs['vehicle_id']
+        return VehicleTrajectory.objects.filter(vehicle_id=vehicle_id)
+
+
+class DriverRoutesListView(generics.ListAPIView):
+    serializer_class = VehicleTrajectoryRouteSerializer
+
+    def get_queryset(self):
+        vehicle_id = self.kwargs['vehicle_id']
+        return VehicleTrajectoryRoute.objects.filter(vehicle_id=vehicle_id)

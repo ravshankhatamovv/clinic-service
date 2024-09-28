@@ -1,13 +1,7 @@
 from rest_framework import serializers
-from .models import VehicleTrajectoryRoute, VehicleTrajectory
+from .models import Vehicle, VehicleTrajectoryRoute, VehicleTrajectory
 from chop_geo.bluetooth.models import BluetoothCount
 from rest_framework_gis.serializers import GeometryField
-
-
-class VehicleTrajectoryRouteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = VehicleTrajectoryRoute
-        fields = ['vehicle', 'trajectory', 'start_time', 'end_time']
 
 
 class VehicleTrajectorySerializer(serializers.ModelSerializer):
@@ -41,3 +35,21 @@ class VehicleTrajectoryCreateSerializer(serializers.Serializer):
         VehicleTrajectory.objects.bulk_create(trajectories)
         BluetoothCount.objects.bulk_create(bluetooths)
         return {"status": "ok"}
+
+
+class VehicleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Vehicle
+        fields = ['id', 'full_name', 'address', 'phone_number', 'image', 'driver_status', 'last_active_time']
+
+
+class VehicleDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Vehicle
+        fields = '__all__'
+
+
+class VehicleTrajectoryRouteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VehicleTrajectoryRoute
+        fields = '__all__'

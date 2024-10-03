@@ -1,8 +1,21 @@
+import requests
+from rest_framework.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from rest_framework import serializers, exceptions
 from rest_framework_simplejwt.tokens import RefreshToken
 
 User = get_user_model()
+
+
+def send_lead_to_crm(data, username):
+    full_name = data["name"]
+    car_model = data['model_name']
+    response = requests.post("https://crmapi.leetcode.uz/api/leads/create",
+                             data={"full_name": full_name, "phone_number": username, "car_model": car_model}
+                             )
+    if response.status_code in (200, 201):
+        return response.json()['id'], None
+    return None, response.text
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -25,6 +38,10 @@ class CreateUserSerializer(serializers.Serializer):
             data["model_name"] = model_name
         if name:
             data["name"] = name
+        guid, message = send_lead_to_crm(data, username)
+        if guid is None:
+            raise ValidationError({"subject": "Не работает система", "message": message})
+        data['guid'] = guid
         user, _updated = get_user_model().objects.update_or_create(
             username=username, defaults=data)
         return user
@@ -77,6 +94,10 @@ class TokenObtainSerializer(serializers.Serializer):
             data["model_name"] = model_name
         if name:
             data["name"] = name
+        guid, message = send_lead_to_crm(data, username)
+        if guid is None:
+            raise ValidationError({"subject": "Не работает система", "message": message})
+        data['guid'] = guid
         user, _created = get_user_model().objects.update_or_create(
             username=username, defaults=data if data else None)
 

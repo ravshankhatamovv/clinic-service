@@ -1,4 +1,3 @@
-
 from rest_framework import generics
 
 from django.contrib.auth import get_user_model
@@ -15,7 +14,6 @@ from chop_geo.users.serializers import (
 )
 
 User = get_user_model()
-
 
 
 class UserMeAPIView(generics.RetrieveAPIView):
@@ -37,6 +35,14 @@ class UserMeAPIView(generics.RetrieveAPIView):
 class UserUpdateViewSet(generics.UpdateAPIView):
     queryset = User.objects.all()
     permission_classes = [IsAuthenticated]
+    serializer_class = UpdateUserSerializer
+
+    def perform_update(self, serializer):
+        serializer.save(updated_from=self.request.user if self.request.user.is_authenticated else None)
+
+
+class UserUpdateExternalViewSet(generics.UpdateAPIView):
+    queryset = User.objects.all()
     serializer_class = UpdateUserSerializer
 
     def perform_update(self, serializer):

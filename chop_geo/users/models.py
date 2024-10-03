@@ -7,6 +7,13 @@ from django.utils.translation import gettext_lazy as _
 from django.db import models
 
 
+class UserStatusChoices(models.TextChoices):
+    PROCESSING = "processing", "Processing"
+    ACCEPTED = "accepted", "Accepted"
+    REJECTED = "rejected", "Rejected"
+    GO_TO_SERVICE = "go_to_service", "Go to service"
+
+
 class User(AbstractUser):
     """
     Default custom user model for Chop Geo.
@@ -21,6 +28,7 @@ class User(AbstractUser):
     first_name = None  # type: ignore[assignment]
     last_name = None  # type: ignore[assignment]
     guid = UUIDField(default=uuid.uuid4, editable=False)
+    status = models.CharField(max_length=50, choices=UserStatusChoices.choices, default=UserStatusChoices.PROCESSING)
 
     def get_absolute_url(self) -> str:
         """Get URL for user's detail view.

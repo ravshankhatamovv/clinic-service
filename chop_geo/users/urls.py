@@ -3,11 +3,12 @@ from .views import (
     UserMeAPIView,
     MyTokenObtainPairView,
     MyTokenRefreshView,
-    UserUpdateViewSet, SendOTPView,
+    UserUpdateViewSet, SendOTPView, UserUpdateExternalViewSet
 )
 
 urlpatterns = [
-    path('update/<int:pk>/', UserUpdateViewSet.as_view(), name='user-update'),
+    path('update/<uuid:id>/', UserUpdateViewSet.as_view(), name='user-update'),
+    path('update/external/<uuid:guid>/', UserUpdateExternalViewSet.as_view(), name='user-external-update'),
 
     path('token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),  # Login
     path('token/refresh/', MyTokenRefreshView.as_view(), name='token_refresh'),  # Refresh token

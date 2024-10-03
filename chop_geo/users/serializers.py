@@ -10,9 +10,10 @@ User = get_user_model()
 def send_lead_to_crm(data, username):
     full_name = data["name"]
     car_model = data['model_name']
-    response = requests.post("https://crmapi.leetcode.uz/api/leads/create",
-                             data={"full_name": full_name, "phone_number": username, "car_model": car_model}
+    response = requests.post("https://crmapi.leetcode.uz/api/leads/v1/create/",
+                             json={"full_name": full_name, "phone_number": username, "car_model": car_model}
                              )
+    print(response.text)
     if response.status_code in (200, 201):
         return response.json()['id'], None
     return None, response.text

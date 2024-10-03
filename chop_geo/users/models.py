@@ -20,7 +20,7 @@ class User(AbstractUser):
     model_name = CharField(_("Name of Model"), blank=True, null=True, max_length=255)
     first_name = None  # type: ignore[assignment]
     last_name = None  # type: ignore[assignment]
-    guid = UUIDField(editable=False)
+    guid = UUIDField(default=uuid.uuid4, editable=False)
 
     def get_absolute_url(self) -> str:
         """Get URL for user's detail view.

@@ -22,7 +22,7 @@ def send_lead_to_crm(data, username):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'name', 'guid']
+        fields = ['id', 'name', 'guid', 'status']
 
 
 class CreateUserSerializer(serializers.Serializer):

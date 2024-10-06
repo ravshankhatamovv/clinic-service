@@ -8,15 +8,17 @@ User = get_user_model()
 
 
 def send_lead_to_crm(data, username):
-    full_name = data["name"]
-    car_model = data['model_name']
-    response = requests.post("https://crmapi.leetcode.uz/api/leads/v1/create",
-                             json={"full_name": full_name, "phone_number": username, "car_model": car_model}
-                             )
-    print(response.text)
-    if response.status_code in (200, 201):
-        return response.json()['id'], None
-    return None, response.text
+    full_name = data.get("name")
+    car_model = data.get('model_name')
+    if full_name and car_model:
+
+        response = requests.post("https://crmapi.leetcode.uz/api/leads/v1/create",
+                                 json={"full_name": full_name, "phone_number": username, "car_model": car_model}
+                                 )
+        print(response.text)
+        if response.status_code in (200, 201):
+            return response.json()['id'], None
+        return None, response.text
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -39,10 +41,11 @@ class CreateUserSerializer(serializers.Serializer):
             data["model_name"] = model_name
         if name:
             data["name"] = name
-        guid, message = send_lead_to_crm(data, username)
-        if guid is None:
-            raise ValidationError({"subject": "Не работает система", "message": message})
-        data['guid'] = guid
+        if model_name and name:
+            guid, message = send_lead_to_crm(data, username)
+            if guid is None:
+                raise ValidationError({"subject": "Не работает система", "message": message})
+            data['guid'] = guid
         user, _updated = get_user_model().objects.update_or_create(
             username=username, defaults=data)
         return user
@@ -95,10 +98,11 @@ class TokenObtainSerializer(serializers.Serializer):
             data["model_name"] = model_name
         if name:
             data["name"] = name
-        guid, message = send_lead_to_crm(data, username)
-        if guid is None:
-            raise ValidationError({"subject": "Не работает система", "message": message})
-        data['guid'] = guid
+        if model_name and name:
+            guid, message = send_lead_to_crm(data, username)
+            if guid is None:
+                raise ValidationError({"subject": "Не работает система", "message": message})
+            data['guid'] = guid
         user, _created = get_user_model().objects.update_or_create(
             username=username, defaults=data if data else None)
 

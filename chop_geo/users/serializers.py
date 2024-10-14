@@ -147,13 +147,9 @@ class TokenObtainSerializer(serializers.Serializer):
         data = {}
         data["refresh"] = str(refresh)
         data["access"] = str(refresh.access_token)
-        if driver_or_lead_uuid.get('driver_uuid'):
-            data["driver_uuid"]= str(driver_or_lead_uuid.get('driver_uuid'))
-        elif driver_or_lead_uuid.get('lead_uuid'):
-            data["lead_uuid"]=str(driver_or_lead_uuid.get('lead_uuid'))
-        else:
-            data["lead_uuid"]=str(driver_or_lead_uuid.get('lead_uuid'))
-        
+        data["driver_uuid"]= str(driver_or_lead_uuid.get('driver_uuid'))
+        data["lead_uuid"]=str(driver_or_lead_uuid.get('lead_uuid'))
+      
         return data
 
     @classmethod

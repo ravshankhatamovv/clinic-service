@@ -5,7 +5,7 @@ from django.db.models import CharField, UUIDField
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.db import models
-
+from phonenumber_field.modelfields import PhoneNumberField
 
 class UserStatusChoices(models.TextChoices):
     PROCESSING = "processing", "Processing"
@@ -29,7 +29,7 @@ class User(AbstractUser):
     last_name = None  # type: ignore[assignment]
     guid = UUIDField(default=uuid.uuid4, editable=False)
     status = models.CharField(max_length=50, choices=UserStatusChoices.choices, default=UserStatusChoices.PROCESSING)
-
+    phone_number = PhoneNumberField(blank=True)
     def get_absolute_url(self) -> str:
         """Get URL for user's detail view.
 

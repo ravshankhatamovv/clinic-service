@@ -1,4 +1,5 @@
 import requests
+from urllib.parse import quote 
 from rest_framework.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from rest_framework import serializers, exceptions
@@ -20,6 +21,26 @@ def send_lead_to_crm(data, username):
             return response.json()['id'], None
         return None, response.text
 
+def get_driver_or_lead_uuid(username):
+     # Replace with your dynamic phone number
+    encoded_phone_number = quote(username)  # URL-encode the phone number (e.g., + becomes %2B)
+    url = f"https://crmapi.leetcode.uz/api/driver/v1/me/{encoded_phone_number}/"
+
+    headers = {
+        "accept": "application/json"
+    }
+
+    response = requests.get(url, headers=headers)
+
+    # Check response
+    if response.status_code == 200:
+        try:
+            data = response.json()  # Convert the response to a Python dictionary
+            return data 
+        except ValueError:
+            print("Response is not in JSON format")
+    else:
+        print(f"Failed to retrieve data: {response.status_code}")
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -119,12 +140,20 @@ class TokenObtainSerializer(serializers.Serializer):
             raise exceptions.AuthenticationFailed(
                 {"invalid_otp": "invalid_otp", }
             )
-
+        driver_or_lead_uuid=get_driver_or_lead_uuid(username=username)
+        print(driver_or_lead_uuid)
         self.user = user
         refresh = self.get_token(self.user)
         data = {}
         data["refresh"] = str(refresh)
         data["access"] = str(refresh.access_token)
+        if driver_or_lead_uuid.get('driver_uuid'):
+            data["driver_uuid"]= str(driver_or_lead_uuid.get('driver_uuid'))
+        elif driver_or_lead_uuid.get('lead_uuid'):
+            data["lead_uuid"]=str(driver_or_lead_uuid.get('lead_uuid'))
+        else:
+            data["lead_uuid"]=str(driver_or_lead_uuid.get('lead_uuid'))
+        
         return data
 
     @classmethod

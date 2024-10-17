@@ -35,17 +35,28 @@ def get_driver_or_lead_uuid(username):
     # Check response
     if response.status_code == 200:
         try:
-            data = response.json()  # Convert the response to a Python dictionary
-            return data 
+            data = response.json()  
+            driver_uuid = data.get("driver_uuid")  
+            lead_uuid = data.get("lead_uuid")  
+
+            return {'driver_uuid':driver_uuid, 'lead_uuid':lead_uuid}
         except ValueError:
-            print("Response is not in JSON format")
+            return None
     else:
         print(f"Failed to retrieve data: {response.status_code}")
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'name', 'guid', 'status']
+        fields = ['id', 'name', 'guid', 'status','username']
+
+    def to_representation(self, instance):
+        # Get the default representation
+        representation = super().to_representation(instance)
+        
+        # Customizing the representation
+        representation['car_name'] = get_driver_or_lead_uuid(username=instance.username)    
+        return representation
 
 
 class CreateUserSerializer(serializers.Serializer):
@@ -141,15 +152,14 @@ class TokenObtainSerializer(serializers.Serializer):
                 {"invalid_otp": "invalid_otp", }
             )
         driver_or_lead_uuid=get_driver_or_lead_uuid(username=username)
-        print(driver_or_lead_uuid)
         self.user = user
         refresh = self.get_token(self.user)
         data = {}
         data["refresh"] = str(refresh)
         data["access"] = str(refresh.access_token)
-        data["driver_uuid"]= driver_or_lead_uuid.get('driver_uuid')
-        data["lead_uuid"]=driver_or_lead_uuid.get('lead_uuid')
-      
+        data["data"]= driver_or_lead_uuid
+
+
         return data
 
     @classmethod

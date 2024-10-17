@@ -55,7 +55,7 @@ class UserSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         
         # Customizing the representation
-        representation['car_name'] = get_driver_or_lead_uuid(username=instance.username)    
+        representation['me_uuid'] = get_driver_or_lead_uuid(username=instance.username)    
         return representation
 
 

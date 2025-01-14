@@ -19,7 +19,7 @@ urlpatterns = [
         name="about",
     ),
     # Django Admin, use {% url 'admin:index' %}
-    path(settings.ADMIN_URL, admin.site.urls),
+    path("admin/", admin.site.urls),
     # Your stuff: custom urls includes go here
     # Media files
     *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),

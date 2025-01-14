@@ -117,7 +117,7 @@ class Model(models.Model):
         ('ready_to_work', 'ready_to_work'),
         ('has_work', 'has_work'),
         ('processed', 'processed'),
-        ('not-processed', 'not-processed')
+        ('not_processed', 'not_processed')
     )
 
     id = models.UUIDField(default=uuid.uuid4,

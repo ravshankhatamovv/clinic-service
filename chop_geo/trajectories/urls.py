@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import VehicleTrajectoryCreateAPIView, BulkVehicleTrajectoryCreateAPIView
+from .views import VehicleTrajectoryCreateAPIView, BulkVehicleTrajectoryCreateAPIView, TopDriversView
 from .views import DriverListView, DriverDetailView, DriverPointsListView, DriverRoutesListView
 
 
@@ -11,4 +11,6 @@ urlpatterns = [
     path('driver-detail/<int:pk>/', DriverDetailView.as_view(), name='driver-detail'),
     path('driver-points/list/<int:vehicle_id>/', DriverPointsListView.as_view(), name='driver-points-list'),
     path('driver-routes/list/<int:vehicle_id>/', DriverRoutesListView.as_view(), name='driver-routes-list'),
+
+    path('top-drivers/<str:period>/', TopDriversView.as_view(), name='top-drivers'),
 ]

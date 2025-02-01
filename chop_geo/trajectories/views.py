@@ -4,6 +4,7 @@ from django.utils.timezone import now, timedelta
 from rest_framework import viewsets, generics, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
 
 from .models import VehicleTrajectoryRoute, VehicleTrajectory, Vehicle
 from .serializers import (
@@ -72,6 +73,7 @@ class DriverRoutesListView(generics.ListAPIView):
 
 
 class TopDriversView(APIView):
+    permission_classes = [AllowAny]
 
     def get_top_drivers(self, start_date):
         """

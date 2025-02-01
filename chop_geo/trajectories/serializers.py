@@ -40,7 +40,7 @@ class VehicleTrajectoryCreateSerializer(serializers.Serializer):
 class VehicleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Vehicle
-        fields = ['id', 'full_name', 'address', 'phone_number', 'image', 'driver_status', 'last_active_time']
+        fields = ['id', 'guid', 'full_name', 'address', 'phone_number', 'image', 'driver_status', 'last_active_time']
 
 
 class VehicleDetailSerializer(serializers.ModelSerializer):

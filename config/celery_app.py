@@ -18,7 +18,7 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks()
 app.conf.beat_schedule = {
     'fetch_data_every_day': {
-        'task': 'chop_geo.trajectories.tasks.fetch_and_save_data',
+        'task': 'chop_geo.trajectories.tasks.create_vehicle_trajectory_routes_for_today',
         'schedule': crontab(minute=0, hour=15),
     },
 }

@@ -17,8 +17,8 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 # Load task modules from all registered Django app configs.
 app.autodiscover_tasks()
 app.conf.beat_schedule = {
-    'fetch_data_every_day': {
-        'task': 'chop_geo.trajectories.tasks.create_vehicle_trajectory_routes_for_today',
-        'schedule': crontab(minute=0, hour=15),
+    'create_routes_every_hour': {
+        'task': 'chop_geo.trajectories.tasks.create_all_vehicle_trajectory_routes_for_today',
+        'schedule': crontab(minute=0, hour='*'),  # Каждый час
     },
 }

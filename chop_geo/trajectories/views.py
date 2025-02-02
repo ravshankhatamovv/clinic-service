@@ -78,6 +78,7 @@ class TopDriversView(APIView):
     def get_top_drivers(self, start_date):
         """
         Возвращает ТОП-5 водителей по пройденной дистанции с указанной даты.
+        Только те, у которых имеется driver_uuid в модели User
         """
         top_drivers = (
             VehicleTrajectoryRoute.objects

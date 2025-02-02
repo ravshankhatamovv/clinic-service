@@ -1,8 +1,9 @@
+from urllib.parse import quote
+
 import requests
-from urllib.parse import quote 
-from rest_framework.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 from rest_framework import serializers, exceptions
+from rest_framework.exceptions import ValidationError
 from rest_framework_simplejwt.tokens import RefreshToken
 
 User = get_user_model()
@@ -16,13 +17,13 @@ def send_lead_to_crm(data, username):
         response = requests.post("https://crmapi.leetcode.uz/api/leads/v1/create",
                                  json={"full_name": full_name, "phone_number": username, "car_model": car_model}
                                  )
-        print(response.text)
         if response.status_code in (200, 201):
             return response.json()['id'], None
         return None, response.text
 
+
 def get_driver_or_lead_uuid(username):
-     # Replace with your dynamic phone number
+    # Replace with your dynamic phone number
     encoded_phone_number = quote(username)  # URL-encode the phone number (e.g., + becomes %2B)
     url = f"https://crmapi.leetcode.uz/api/driver/v1/me/{encoded_phone_number}/"
 
@@ -35,27 +36,32 @@ def get_driver_or_lead_uuid(username):
     # Check response
     if response.status_code == 200:
         try:
-            data = response.json()  
-            driver_uuid = data.get("driver_uuid")  
-            lead_uuid = data.get("lead_uuid")  
-
-            return {'driver_uuid':driver_uuid, 'lead_uuid':lead_uuid}
+            data = response.json()
+            driver_uuid = data.get("driver_uuid")
+            lead_uuid = data.get("lead_uuid")
+            if driver_uuid:
+                user = User.objects.get(username=username)
+                if user.driver_guid != driver_uuid:  # Проверяем, изменилось ли значение
+                    user.driver_guid = driver_uuid
+                    user.save()
+            return {'driver_uuid': driver_uuid, 'lead_uuid': lead_uuid}
         except ValueError:
             return None
     else:
         print(f"Failed to retrieve data: {response.status_code}")
 
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'name', 'guid', 'status','username']
+        fields = ['id', 'name', 'guid', 'status', 'username']
 
     def to_representation(self, instance):
         # Get the default representation
         representation = super().to_representation(instance)
-        
+
         # Customizing the representation
-        representation['me_uuid'] = get_driver_or_lead_uuid(username=instance.username)    
+        representation['me_uuid'] = get_driver_or_lead_uuid(username=instance.username)
         return representation
 
 
@@ -151,14 +157,13 @@ class TokenObtainSerializer(serializers.Serializer):
             raise exceptions.AuthenticationFailed(
                 {"invalid_otp": "invalid_otp", }
             )
-        driver_or_lead_uuid=get_driver_or_lead_uuid(username=username)
+        driver_or_lead_uuid = get_driver_or_lead_uuid(username=username)
         self.user = user
         refresh = self.get_token(self.user)
         data = {}
         data["refresh"] = str(refresh)
         data["access"] = str(refresh.access_token)
-        data["data"]= driver_or_lead_uuid
-
+        data["data"] = driver_or_lead_uuid
 
         return data
 

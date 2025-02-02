@@ -28,8 +28,10 @@ class User(AbstractUser):
     first_name = None  # type: ignore[assignment]
     last_name = None  # type: ignore[assignment]
     guid = UUIDField(default=uuid.uuid4, editable=False)
+    driver_guid = UUIDField(editable=False, blank=True, null=True)
     status = models.CharField(max_length=50, choices=UserStatusChoices.choices, default=UserStatusChoices.PROCESSING)
     phone_number = PhoneNumberField(blank=True)
+
     def get_absolute_url(self) -> str:
         """Get URL for user's detail view.
 

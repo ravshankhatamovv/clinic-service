@@ -1,26 +1,25 @@
+from django.contrib.auth import get_user_model
 from django.contrib.gis.db.models.functions import Length
 from django.db.models import Sum
 from django.utils.timezone import now, timedelta
-from rest_framework import viewsets, generics, permissions
+from rest_framework import generics, permissions
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny
 
-from .models import VehicleTrajectoryRoute, VehicleTrajectory, Vehicle
+from chop_geo.users.serializers import UserSerializer
+from .models import Vehicle, UserTrajectory, UserTrajectoryRoute
 from .serializers import (
-    VehicleTrajectoryRouteSerializer, VehicleTrajectorySerializer,
-    VehicleTrajectoryCreateSerializer, VehicleSerializer, VehicleDetailSerializer
+    UserTrajectorySerializer,
+    VehicleTrajectoryCreateSerializer
 )
 
-
-class VehicleTrajectoryRouteViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = VehicleTrajectoryRoute.objects.all()
-    serializer_class = VehicleTrajectoryRouteSerializer
+User = get_user_model()
 
 
-class VehicleTrajectoryCreateAPIView(generics.CreateAPIView):
-    queryset = VehicleTrajectory.objects.all()
-    serializer_class = VehicleTrajectorySerializer
+class UserTrajectoryCreateAPIView(generics.CreateAPIView):
+    queryset = UserTrajectory.objects.all()
+    serializer_class = UserTrajectorySerializer
     permission_classes = [permissions.IsAuthenticated]  # Ensure only authenticated users can create trajectories
 
     def perform_create(self, serializer):
@@ -33,43 +32,13 @@ class VehicleTrajectoryCreateAPIView(generics.CreateAPIView):
 
 
 class BulkVehicleTrajectoryCreateAPIView(generics.CreateAPIView):
-    queryset = VehicleTrajectory.objects.all()
+    queryset = UserTrajectory.objects.all()
     serializer_class = VehicleTrajectoryCreateSerializer
 
     def perform_create(self, serializer):
-        try:
-            vehicle = self.request.user.vehicle
-        except Vehicle.DoesNotExist:
-            vehicle = Vehicle.objects.create(user=self.request.user)
+        user = self.request.user
         # Additional logic to prevent multiple objects creation
-        serializer.save(vehicle=vehicle)
-
-
-class DriverListView(generics.ListAPIView):
-    queryset = Vehicle.objects.all()
-    serializer_class = VehicleSerializer
-
-
-class DriverDetailView(generics.RetrieveAPIView):
-    queryset = Vehicle.objects.all()
-    serializer_class = VehicleDetailSerializer
-    lookup_field = 'pk'  # можно использовать 'guid', если это основной идентификатор
-
-
-class DriverPointsListView(generics.ListAPIView):
-    serializer_class = VehicleTrajectorySerializer
-
-    def get_queryset(self):
-        vehicle_id = self.kwargs['vehicle_id']
-        return VehicleTrajectory.objects.filter(vehicle_id=vehicle_id)
-
-
-class DriverRoutesListView(generics.ListAPIView):
-    serializer_class = VehicleTrajectoryRouteSerializer
-
-    def get_queryset(self):
-        vehicle_id = self.kwargs['vehicle_id']
-        return VehicleTrajectoryRoute.objects.filter(vehicle_id=vehicle_id)
+        serializer.save(user=user)
 
 
 class TopDriversView(APIView):
@@ -81,24 +50,24 @@ class TopDriversView(APIView):
         Только те, у которых имеется driver_uuid в модели User
         """
         top_drivers = (
-            VehicleTrajectoryRoute.objects
+            UserTrajectoryRoute.objects
             .filter(start_time__gte=start_date)
             .annotate(total_distance=Length('trajectory'))  # Вычисляем длину маршрута
-            .values('vehicle')
+            .values('user')
             .annotate(total_distance=Sum('total_distance'))  # Суммируем расстояния
             .order_by('-total_distance')[:5]  # ТОП-5
         )
 
         # Получаем данные о водителях
-        vehicle_ids = [driver['vehicle'] for driver in top_drivers]
-        vehicles = Vehicle.objects.filter(id__in=vehicle_ids)
-        vehicle_data = VehicleSerializer(vehicles, many=True).data
+        vehicle_ids = [driver['user'] for driver in top_drivers]
+        vehicles = User.objects.filter(id__in=vehicle_ids)
+        vehicle_data = UserSerializer(vehicles, many=True).data
 
         # Добавляем дистанцию
         for vehicle in vehicle_data:
-            vehicle_id = vehicle['id']
+            user = vehicle['id']
             vehicle['total_distance'] = next(
-                (d['total_distance'] for d in top_drivers if d['vehicle'] == vehicle_id), 0
+                (d['total_distance'] for d in top_drivers if d['user'] == user), 0
             )
 
         return vehicle_data

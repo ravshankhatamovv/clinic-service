@@ -3,11 +3,8 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework.routers import SimpleRouter
 
-from chop_geo.trajectories.views import VehicleTrajectoryRouteViewSet
 
 router = DefaultRouter() if settings.DEBUG else SimpleRouter()
-
-router.register('vehicle-routes', VehicleTrajectoryRouteViewSet)
 
 
 app_name = "api"

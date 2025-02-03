@@ -3,7 +3,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import Point
 from django.utils import timezone
 import random
-from chop_geo.trajectories.models import VehicleTrajectoryRoute, VehicleTrajectory, Vehicle
+from chop_geo.trajectories.models import Vehicle, UserTrajectoryRoute, \
+    UserTrajectory
 
 User = get_user_model()
 
@@ -17,16 +18,16 @@ def create_data():
         lon = 62.0 + random.uniform(-0.01, 0.01)
         timestamp = timezone.now() + timezone.timedelta(minutes=i * 5)
 
-        VehicleTrajectory.objects.create(
+        UserTrajectory.objects.create(
             vehicle=vehicle,
             timestamp=timestamp,
             location=Point(lon, lat)
         )
 
-    trajectory_line, start_time, end_time = VehicleTrajectoryRoute.generate_trajectory(vehicle=vehicle)
+    trajectory_line, start_time, end_time = UserTrajectoryRoute.generate_trajectory(vehicle=vehicle)
 
     if trajectory_line:
-        VehicleTrajectoryRoute.objects.create(
+        UserTrajectoryRoute.objects.create(
             vehicle=vehicle,
             trajectory=trajectory_line,
             start_time=start_time,

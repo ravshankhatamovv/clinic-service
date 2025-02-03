@@ -54,7 +54,7 @@ def get_driver_or_lead_uuid(username):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'name', 'guid', 'status', 'username']
+        fields = ['id', 'name', 'guid', 'driver_guid', 'status', 'username']
 
     def to_representation(self, instance):
         # Get the default representation

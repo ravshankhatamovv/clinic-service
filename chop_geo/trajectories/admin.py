@@ -1,11 +1,6 @@
 from django.contrib import admin
-from .models import Vehicle, UserTrajectory, UserTrajectoryRoute
+from .models import UserTrajectory, UserTrajectoryRoute
 from .forms import UserTrajectoryForm, UserTrajectoryRouteForm
-
-
-@admin.register(Vehicle)
-class VehicleAdmin(admin.ModelAdmin):
-    ...
 
 
 @admin.register(UserTrajectoryRoute)

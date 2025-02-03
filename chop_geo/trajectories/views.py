@@ -1,34 +1,38 @@
+from datetime import datetime
+
 from django.contrib.auth import get_user_model
 from django.contrib.gis.db.models.functions import Length
-from django.db.models import Sum
+from django.db.models import Sum, Q
+from django.utils.timezone import make_aware
 from django.utils.timezone import now, timedelta
-from rest_framework import generics, permissions
+from rest_framework import generics
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from chop_geo.users.serializers import UserSerializer
-from .models import Vehicle, UserTrajectory, UserTrajectoryRoute
+from .models import UserTrajectory, UserTrajectoryRoute
 from .serializers import (
-    UserTrajectorySerializer,
-    VehicleTrajectoryCreateSerializer
+    VehicleTrajectoryCreateSerializer,
+    UserTrajectoryRouteSerializer
 )
 
 User = get_user_model()
 
 
-class UserTrajectoryCreateAPIView(generics.CreateAPIView):
-    queryset = UserTrajectory.objects.all()
-    serializer_class = UserTrajectorySerializer
-    permission_classes = [permissions.IsAuthenticated]  # Ensure only authenticated users can create trajectories
-
-    def perform_create(self, serializer):
-        # Automatically associate the VehicleTrajectory with the Vehicle of the current user
-        try:
-            vehicle = self.request.user.vehicle
-        except Vehicle.DoesNotExist:
-            vehicle = Vehicle.objects.create(user=self.request.user)
-        serializer.save(vehicle=vehicle)
+#
+# class UserTrajectoryCreateAPIView(generics.CreateAPIView):
+#     queryset = UserTrajectory.objects.all()
+#     serializer_class = UserTrajectorySerializer
+#     permission_classes = [permissions.IsAuthenticated]  # Ensure only authenticated users can create trajectories
+#
+#     def perform_create(self, serializer):
+#         # Automatically associate the VehicleTrajectory with the Vehicle of the current user
+#         try:
+#             vehicle = self.request.user.vehicle
+#         except User.DoesNotExist:
+#             vehicle = Vehicle.objects.create(user=self.request.user)
+#         serializer.save(vehicle=vehicle)
 
 
 class BulkVehicleTrajectoryCreateAPIView(generics.CreateAPIView):
@@ -90,3 +94,51 @@ class TopDriversView(APIView):
 
         top_drivers = self.get_top_drivers(start_date)
         return Response({"period": period, "top_drivers": top_drivers})
+
+
+class UserTrajectoryRouteRetrieveAPIView(generics.ListAPIView):
+    serializer_class = UserTrajectoryRouteSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        user_id = self.kwargs.get("user_id")
+        user = generics.get_object_or_404(User, id=user_id)
+
+        queryset = UserTrajectoryRoute.objects.filter(user=user)
+
+        day = self.request.query_params.get("day")
+        month = self.request.query_params.get("month")
+        weekly = self.request.query_params.get("weekly")
+
+        if day:
+            try:
+                day_date = make_aware(datetime.strptime(day, "%Y-%m-%d"))
+                queryset = queryset.filter(
+                    Q(start_time__date=day_date.date()) | Q(end_time__date=day_date.date())
+                )
+            except ValueError:
+                return queryset.none()
+
+        elif month:
+            try:
+                month_date = make_aware(datetime.strptime(month, "%Y-%m"))
+                queryset = queryset.filter(
+                    Q(start_time__year=month_date.year, start_time__month=month_date.month) |
+                    Q(end_time__year=month_date.year, end_time__month=month_date.month)
+                )
+            except ValueError:
+                return queryset.none()
+
+        elif weekly:
+            try:
+                week_date = make_aware(datetime.strptime(weekly, "%Y-%m-%d"))
+                start_week = week_date - timedelta(days=week_date.weekday())
+                end_week = start_week + timedelta(days=6)
+                queryset = queryset.filter(
+                    Q(start_time__date__range=[start_week.date(), end_week.date()]) |
+                    Q(end_time__date__range=[start_week.date(), end_week.date()])
+                )
+            except ValueError:
+                return queryset.none()
+
+        return queryset

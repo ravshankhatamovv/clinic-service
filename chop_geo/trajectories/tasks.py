@@ -15,7 +15,6 @@ def create_all_vehicle_trajectory_routes_for_today():
     """
     Создает или обновляет маршруты для всех транспортных средств на основе их сегодняшних траекторий.
     """
-    print("BEGIN")
     try:
         today = date.today()
         users = User.objects.all()  # Получаем всех водителей

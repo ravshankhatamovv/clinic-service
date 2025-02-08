@@ -55,7 +55,7 @@ class Vehicle(models.Model):
         HAS_WORK = 'has_work', 'has_work'
         PROCESSED = 'processed', 'processed'
         NOT_PROCESSED = 'not-processed', 'not-processed'
-
+    
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="vehicle")
     guid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     created_at = models.DateField(auto_now_add=True, verbose_name=_("Дата создания"))

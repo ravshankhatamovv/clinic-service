@@ -5,10 +5,12 @@ from django.contrib.gis.db.models.functions import Length
 from django.db.models import Sum, Q
 from django.utils.timezone import make_aware
 from django.utils.timezone import now, timedelta
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
+
 
 from chop_geo.users.serializers import UserSerializer
 from .models import UserTrajectory, UserTrajectoryRoute
@@ -96,19 +98,43 @@ class TopDriversView(APIView):
         return Response({"period": period, "top_drivers": top_drivers})
 
 
-class UserTrajectoryRouteRetrieveAPIView(generics.ListAPIView):
-    serializer_class = UserTrajectoryRouteSerializer
+class UserTrajectoryRouteRetrieveAPIView(APIView):
     permission_classes = [AllowAny]
 
-    def get_queryset(self):
-        user_id = self.kwargs.get("user_id")
-        user = generics.get_object_or_404(User, id=user_id)
+    @extend_schema(
+        request={
+            "application/json": {
+                "type": "object",
+                "properties": {
+                    "lead_ids": {"type": "array", "items": {"type": "string"}},
+                    "driver_ids": {"type": "array", "items": {"type": "string"}},
+                    "day": {"type": "string", "format": "date", "example": "2025-02-12"},
+                    "month": {"type": "string", "format": "yyyy-MM", "example": "2025-02"},
+                    "weekly": {"type": "string", "format": "date", "example": "2025-02-12"}
+                },
+                "required": ["lead_ids", "driver_ids"]
+            }
+        },
+        responses={200: UserTrajectoryRouteSerializer(many=True)},
+    )
+    def post(self, request, *args, **kwargs):
+        lead_ids = request.data.get("lead_ids", [])
+        driver_ids = request.data.get("driver_ids", [])
 
-        queryset = UserTrajectoryRoute.objects.filter(user=user)
+        if not isinstance(lead_ids, list) or not isinstance(driver_ids, list) or (not lead_ids and not driver_ids):
+            return Response({"error": "Invalid or missing lead_ids and driver_ids lists"}, status=status.HTTP_400_BAD_REQUEST)
 
-        day = self.request.query_params.get("day")
-        month = self.request.query_params.get("month")
-        weekly = self.request.query_params.get("weekly")
+        user_filter = Q()
+        if lead_ids:
+            user_filter |= Q(guid__in=lead_ids)
+        if driver_ids:
+            user_filter |= Q(driver_guid__in=driver_ids)
+
+        queryset = UserTrajectoryRoute.objects.filter(user__in=User.objects.filter(user_filter))
+
+        day = request.data.get("day")
+        month = request.data.get("month")
+        weekly = request.data.get("weekly")
 
         if day:
             try:
@@ -117,7 +143,7 @@ class UserTrajectoryRouteRetrieveAPIView(generics.ListAPIView):
                     Q(start_time__date=day_date.date()) | Q(end_time__date=day_date.date())
                 )
             except ValueError:
-                return queryset.none()
+                return Response({"error": "Invalid date format for 'day'. Use YYYY-MM-DD."}, status=status.HTTP_400_BAD_REQUEST)
 
         elif month:
             try:
@@ -127,7 +153,7 @@ class UserTrajectoryRouteRetrieveAPIView(generics.ListAPIView):
                     Q(end_time__year=month_date.year, end_time__month=month_date.month)
                 )
             except ValueError:
-                return queryset.none()
+                return Response({"error": "Invalid date format for 'month'. Use YYYY-MM."}, status=status.HTTP_400_BAD_REQUEST)
 
         elif weekly:
             try:
@@ -139,6 +165,7 @@ class UserTrajectoryRouteRetrieveAPIView(generics.ListAPIView):
                     Q(end_time__date__range=[start_week.date(), end_week.date()])
                 )
             except ValueError:
-                return queryset.none()
+                return Response({"error": "Invalid date format for 'weekly'. Use YYYY-MM-DD."}, status=status.HTTP_400_BAD_REQUEST)
 
-        return queryset
+        serializer = UserTrajectoryRouteSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

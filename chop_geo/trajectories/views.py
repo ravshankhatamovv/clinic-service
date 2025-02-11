@@ -8,8 +8,10 @@ from django.utils.timezone import now, timedelta
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from django.contrib.gis.geos import GEOSGeometry
+from django.db.models import Count
 from rest_framework.views import APIView
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
+from drf_spectacular.utils import extend_schema
 
 
 from chop_geo.users.serializers import UserSerializer
@@ -57,7 +59,7 @@ class TopDriversView(APIView):
         """
         top_drivers = (
             UserTrajectoryRoute.objects
-            .filter(start_time__gte=start_date)
+            .filter(start_time__gte=start_date, user__driver_guid__isnull=False)
             .annotate(total_distance=Length('trajectory'))  # Вычисляем длину маршрута
             .values('user')
             .annotate(total_distance=Sum('total_distance'))  # Суммируем расстояния
@@ -169,3 +171,62 @@ class UserTrajectoryRouteRetrieveAPIView(APIView):
 
         serializer = UserTrajectoryRouteSerializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class UserHeatmapAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        request={
+            "application/json": {
+                "type": "object",
+                "properties": {
+                    "start_date": {"type": "string", "format": "date", "example": "2025-02-01"},
+                    "end_date": {"type": "string", "format": "date", "example": "2025-02-12"},
+                    "lead_ids": {"type": "array", "items": {"type": "string"}},
+                    "driver_ids": {"type": "array", "items": {"type": "string"}},
+                },
+                "required": ["start_date", "end_date"]
+            }
+        },
+        responses={200: {"type": "array", "items": {"type": "object", "properties": {
+            "latitude": {"type": "number"},
+            "longitude": {"type": "number"},
+            "count": {"type": "integer"}
+        }}}},
+    )
+    def post(self, request, *args, **kwargs):
+        start_date = request.data.get("start_date")
+        end_date = request.data.get("end_date")
+        lead_ids = request.data.get("lead_ids", [])
+        driver_ids = request.data.get("driver_ids", [])
+
+        if not start_date or not end_date:
+            return Response({"error": "start_date and end_date are required."}, status=400)
+
+        try:
+            start_date = make_aware(datetime.strptime(start_date, "%Y-%m-%d"))
+            end_date = make_aware(datetime.strptime(end_date, "%Y-%m-%d"))
+        except ValueError:
+            return Response({"error": "Invalid date format. Use YYYY-MM-DD."}, status=400)
+
+        user_filter = Q()
+        if lead_ids:
+            user_filter |= Q(guid__in=lead_ids)
+        if driver_ids:
+            user_filter |= Q(driver_guid__in=driver_ids)
+
+        trajectories = (
+            UserTrajectory.objects
+            .filter(timestamp__range=(start_date, end_date), user__in=User.objects.filter(user_filter))
+            .values("location")
+            .annotate(count=Count("id"))
+        )
+
+        heatmap_data = [
+            {"latitude": geo_point.y, "longitude": geo_point.x, "count": data["count"]}
+            for data in trajectories if (geo_point := GEOSGeometry(data["location"]))
+        ]
+
+        return Response(heatmap_data, status=200)
+

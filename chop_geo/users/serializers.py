@@ -13,7 +13,7 @@ def send_lead_to_crm(data, username):
     car_model = data.get('model_name')
     if full_name and car_model:
 
-        response = requests.post("https://crmapi.leetcode.uz/api/leads/v1/create",
+        response = requests.get("https://geo.leetcode.uz/api/leads/v1/create",
                                  json={"full_name": full_name, "phone_number": username, "car_model": car_model}
                                  )
         print(response.text)

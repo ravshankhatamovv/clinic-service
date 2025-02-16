@@ -1,11 +1,11 @@
 from django import forms
 from django.contrib.gis import forms as gis_forms
-from .models import VehicleTrajectory, VehicleTrajectoryRoute
+from .models import UserTrajectory, UserTrajectoryRoute
 
 
-class VehicleTrajectoryForm(forms.ModelForm):
+class UserTrajectoryForm(forms.ModelForm):
     class Meta:
-        model = VehicleTrajectory
+        model = UserTrajectory
         fields = '__all__'
         widgets = {
             'location': gis_forms.OSMWidget(attrs={
@@ -18,9 +18,9 @@ class VehicleTrajectoryForm(forms.ModelForm):
         }
 
 
-class VehicleTrajectoryRouteForm(forms.ModelForm):
+class UserTrajectoryRouteForm(forms.ModelForm):
     class Meta:
-        model = VehicleTrajectoryRoute
+        model = UserTrajectoryRoute
         fields = '__all__'
         widgets = {
             'trajectory': gis_forms.OSMWidget(attrs={

@@ -1,7 +1,7 @@
 from django.contrib import admin
-from chop_geo.bluetooth.models import BluetoothCount
+from chop_geo.bluetooth.models import UserBluetoothCount
 
 
-@admin.register(BluetoothCount)
-class BluetoothCountAdmin(admin.ModelAdmin):
+@admin.register(UserBluetoothCount)
+class UserBluetoothCountAdmin(admin.ModelAdmin):
     ...

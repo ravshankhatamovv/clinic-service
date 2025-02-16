@@ -1,11 +1,10 @@
-import uuid
-
 from django.contrib.auth import get_user_model
+from django.contrib.gis.db import models as geomodels
+from django.contrib.gis.geos import LineString
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from django.contrib.gis.db import models as geomodels
-from django.contrib.gis.geos import LineString
+import uuid
 
 User = get_user_model()
 
@@ -82,91 +81,42 @@ class Vehicle(models.Model):
 
 class VehicleTrajectory(models.Model):
     vehicle = models.ForeignKey("Vehicle", on_delete=models.CASCADE, related_name='trajectories')
+
+class UserTrajectory(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='trajectories')
     timestamp = models.DateTimeField()
     location = geomodels.PointField()
 
+    class Meta:
+        verbose_name = "Точки пользователей"
+        verbose_name_plural = "Точки пользователей"
+
     def __str__(self):
-        return f'{str(self.vehicle.user.username)} - {self.timestamp}'
+        return f'{str(self.user.username)} - {self.timestamp}'
 
 
-class VehicleTrajectoryRoute(models.Model):
-    vehicle = models.ForeignKey("Vehicle", on_delete=models.CASCADE, related_name='routes')
+class UserTrajectoryRoute(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='routes')
     trajectory = geomodels.LineStringField()
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
 
+    class Meta:
+        verbose_name = "Линии дорог"
+        verbose_name_plural = "Линии дорог"
+
     def __str__(self):
-        return f'Route for {str(self.vehicle.user.username)}'
+        return f'Route for {str(self.user.username)}'
 
     @staticmethod
-    def generate_trajectory(vehicle):
+    def generate_trajectory(user):
         """
         Генерация траектории на основе точек для указанного транспортного средства.
         """
-        trajectories = VehicleTrajectory.objects.filter(vehicle=vehicle).order_by('timestamp')
+        trajectories = UserTrajectory.objects.filter(user=user).order_by('timestamp')
         points = [(traj.location.x, traj.location.y) for traj in trajectories]
 
         if len(points) > 1:
             trajectory_line = LineString(points)
             return trajectory_line, trajectories.first().timestamp, trajectories.last().timestamp
         return None, None, None
-
-
-class Model(models.Model):
-    CHOICE_DRIVER_STATUS = (
-        ('ready_to_work', 'ready_to_work'),
-        ('has_work', 'has_work'),
-        ('processed', 'processed'),
-        ('not_processed', 'not_processed')
-    )
-
-    id = models.UUIDField(default=uuid.uuid4,
-                          primary_key=True,
-                          editable=False,
-                          unique=True, )
-
-    created_at = models.DateField(auto_now_add=True,
-                                  verbose_name=_("Дата создания"))
-
-    updated_at = models.DateField(auto_now=True,
-                                  null=True,
-                                  verbose_name=_("Дата изменения"))
-    full_name = models.CharField(max_length=255,
-                                 verbose_name=_("ФИО"))
-
-    address = models.CharField(max_length=255,
-                               verbose_name=_("Адрес"))
-
-    phone_number = models.CharField(max_length=50,
-                                    blank=True,
-                                    verbose_name=_("Номер телефона"))
-
-    first_side_passport = models.URLField(blank=True,
-                                          null=True,
-                                          verbose_name=_("первая сторона паспорта"))
-
-    second_side_passport = models.URLField(blank=True,
-                                           null=True,
-                                           verbose_name=_("вторая сторона паспорта"))
-    card_data = models.OneToOneField(to="billing.DriverCardData",
-                                     related_name='driver',
-                                     on_delete=models.SET_NULL,
-                                     null=True,
-                                     blank=True,
-                                     verbose_name=_("данные карты водителя"))
-
-    car_data = models.OneToOneField(to=DriverCarData,
-                                    on_delete=models.SET_NULL,
-                                    null=True,
-                                    blank=True)
-    image = models.URLField(blank=True, null=True,
-                            verbose_name=_("Фото профиля"))
-
-    driver_status = models.CharField(max_length=50,
-                                     blank=True,
-                                     null=True,
-                                     choices=CHOICE_DRIVER_STATUS,
-                                     default='ready_to_work')
-    last_active_time = models.DateTimeField(auto_now=True,
-                                            null=True,
-                                            verbose_name=_("Last active time"))

@@ -1,16 +1,17 @@
 from django.urls import path
-from .views import VehicleTrajectoryCreateAPIView, BulkVehicleTrajectoryCreateAPIView, TopDriversView
-from .views import DriverListView, DriverDetailView, DriverPointsListView, DriverRoutesListView
 
+from .views import (
+    BulkVehicleTrajectoryCreateAPIView,
+    TopDriversView,
+    UserTrajectoryRouteRetrieveAPIView,
+    UserHeatmapAPIView
+)
 
 urlpatterns = [
-    path('create/', VehicleTrajectoryCreateAPIView.as_view(), name='vehicletrajectory-create'),
+    # path('create/', UserTrajectoryCreateAPIView.as_view(), name='vehicletrajectory-create'),
     path('bulk-create/', BulkVehicleTrajectoryCreateAPIView.as_view(), name='bulk-vehicletrajectory-create'),
-
-    path('driver-list/', DriverListView.as_view(), name='driver-list'),
-    path('driver-detail/<int:pk>/', DriverDetailView.as_view(), name='driver-detail'),
-    path('driver-points/list/<int:vehicle_id>/', DriverPointsListView.as_view(), name='driver-points-list'),
-    path('driver-routes/list/<int:vehicle_id>/', DriverRoutesListView.as_view(), name='driver-routes-list'),
-
     path('top-drivers/<str:period>/', TopDriversView.as_view(), name='top-drivers'),
+    path('heatmap/', UserHeatmapAPIView.as_view(), name='heatmap-list'),
+    path("user-routes/",
+         UserTrajectoryRouteRetrieveAPIView.as_view(), name="user-routes-retrieve"),
 ]

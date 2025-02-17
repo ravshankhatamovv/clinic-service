@@ -11,16 +11,27 @@ User = get_user_model()
 
 def send_lead_to_crm(data, username):
     full_name = data.get("name")
-    car_model = data.get('model_name')
-    if full_name and car_model:
+    car_model = data.get("model_name")
 
-        response = requests.get("https://geo.leetcode.uz/api/leads/v1/create",
-                                 json={"full_name": full_name, "phone_number": username, "car_model": car_model}
-                                 )
-        if response.status_code in (200, 201):
-            return response.json()['id'], None
-        return None, response.text
+    if full_name and car_model and username:
+        try:
+            response = requests.post(
+                "https://crmapi.leetcode.uz/api/leads/v1/create",
+                json={"full_name": full_name, "phone_number": username, "car_model": car_model},
+                # timeout=5  # Prevents hanging requests
+            )
+            response.raise_for_status()  # Raises an exception for 4xx/5xx responses
 
+            try:
+                response_data = response.json()
+                return response_data.get("id"), None
+            except ValueError:
+                return None, "Invalid JSON response from CRM"
+        
+        except requests.exceptions.RequestException as e:
+            return None, f"CRM request failed: {str(e)}"
+
+    return None, "Missing required fields: 'name' and 'model_name'"
 
 def get_driver_or_lead_uuid(username):
     # Replace with your dynamic phone number
@@ -90,6 +101,7 @@ class CreateUserSerializer(serializers.Serializer):
             guid, message = send_lead_to_crm(data, username)
             if guid is None:
                 raise ValidationError({"subject": "Не работает система", "message": message})
+            
             data['guid'] = guid
         user, _updated = get_user_model().objects.update_or_create(
             username=username, defaults=data)

@@ -117,7 +117,7 @@ class UserTrajectoryRouteRetrieveAPIView(APIView):
                 "required": ["lead_ids", "driver_ids"]
             }
         },
-        responses={200: UserTrajectoryRouteSerializer(many=True)},
+        # responses={200: UserTrajectoryRouteSerializer(many=True)},
     )
     def post(self, request, *args, **kwargs):
         lead_ids = request.data.get("lead_ids", [])

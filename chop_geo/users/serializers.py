@@ -136,8 +136,11 @@ class UserMeSerializer(serializers.Serializer):
 
 
 class TokenObtainSerializer(serializers.Serializer):
+    # For register
     username = serializers.CharField()
     otp_code = serializers.CharField(max_length=6)
+    model_name = serializers.CharField()
+    name = serializers.CharField()
 
     default_error_messages = {
         "no_active_account": "No active account found with the given credentials"

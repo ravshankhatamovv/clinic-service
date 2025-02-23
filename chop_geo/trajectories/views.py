@@ -112,7 +112,9 @@ class UserTrajectoryRouteRetrieveAPIView(APIView):
                     "driver_ids": {"type": "array", "items": {"type": "string"}},
                     "day": {"type": "string", "format": "date", "example": "2025-02-12"},
                     "month": {"type": "string", "format": "yyyy-MM", "example": "2025-02"},
-                    "weekly": {"type": "string", "format": "date", "example": "2025-02-12"}
+                    "weekly": {"type": "string", "format": "date", "example": "2025-02-12"},
+                    "time": {"type": "string", "format": "HH:MM", "example": "15:00"},
+                    "duration_minutes": {"type": "integer", "example": 30}
                 },
                 "required": ["lead_ids", "driver_ids"]
             }
@@ -137,6 +139,8 @@ class UserTrajectoryRouteRetrieveAPIView(APIView):
         day = request.data.get("day")
         month = request.data.get("month")
         weekly = request.data.get("weekly")
+        time = request.data.get("time")  # HH:MM format
+        duration_minutes = request.data.get("duration_minutes", 15)
 
         if day:
             try:
@@ -146,6 +150,19 @@ class UserTrajectoryRouteRetrieveAPIView(APIView):
                 )
             except ValueError:
                 return Response({"error": "Invalid date format for 'day'. Use YYYY-MM-DD."}, status=status.HTTP_400_BAD_REQUEST)
+
+            if time:
+                try:
+                    time_obj = datetime.strptime(time, "%H:%M").time()
+                    filter_start_time = make_aware(datetime.combine(day_date.date(), time_obj))
+                    filter_end_time = filter_start_time + timedelta(minutes=int(duration_minutes))
+
+                    queryset = queryset.filter(
+                        Q(start_time__range=[filter_start_time, filter_end_time]) |
+                        Q(end_time__range=[filter_start_time, filter_end_time])
+                    )
+                except ValueError:
+                    return Response({"error": "Invalid time format for 'time'. Use HH:MM."}, status=status.HTTP_400_BAD_REQUEST)
 
         elif month:
             try:

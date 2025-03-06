@@ -114,7 +114,7 @@ class UserTrajectoryRouteRetrieveAPIView(APIView):
                     "month": {"type": "string", "format": "yyyy-MM", "example": "2025-02"},
                     "weekly": {"type": "string", "format": "date", "example": "2025-02-12"},
                     "time": {"type": "string", "format": "HH:MM", "example": "15:00"},
-                    "duration_minutes": {"type": "integer", "example": 30}
+                    "duration_minutes": {"type": "integer", "example": 15}
                 },
                 "required": ["lead_ids", "driver_ids"]
             }

@@ -6,6 +6,8 @@ from drf_spectacular.utils import extend_schema
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.utils.timezone import now
+from datetime import timedelta
 
 from .models import User, UserBluetoothCount
 
@@ -65,3 +67,22 @@ class UserBluetoothStatisticsAPIView(APIView):
         ]
 
         return Response(statistics_data, status=200)
+
+
+
+
+class BluetoothStatisticsAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        start_date = now().date()  # Get today's date
+        thirty_days_ago = start_date - timedelta(days=30)  # 30 days before today
+
+        bluetooth_counts = (
+            UserBluetoothCount.objects
+            .filter(timestamp__range=(thirty_days_ago, start_date))  # Fix range order
+            .aggregate(total_count=Sum("count"))  # Aggregate to get sum
+        )
+
+        return Response(bluetooth_counts, status=200)
+    

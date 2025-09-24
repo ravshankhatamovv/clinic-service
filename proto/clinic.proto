@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package clinic;
+
+service ClinicService {
+  rpc CreateDoctor(CreateDoctorRequest) returns (DoctorResponse);
+}
+
+message CreateDoctorRequest {
+  int32 user_id = 1;
+  string specialization = 2;
+  string clinic_name = 3;
+  string full_name=4;
+}
+
+message DoctorResponse {
+  int32 id = 1;
+  int32 user_id = 2;
+  string specialization = 3;
+  string clinic_name = 4;
+  string full_name= 5;
+  
+}

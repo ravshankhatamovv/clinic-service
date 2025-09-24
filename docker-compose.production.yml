@@ -1,7 +1,7 @@
 volumes:
-  geo_production_postgres_data: {}
-  geo_production_postgres_data_backups: {}
-  geo_production_redis_data: {}
+  clinic_production_postgres_data: {}
+  clinic_production_postgres_data_backups: {}
+  clinic_production_redis_data: {}
 
 
 
@@ -11,7 +11,7 @@ services:
       context: .
       dockerfile: ./compose/production/django/Dockerfile
 
-    image: chop_geo_production_django
+    image: clinic_production_django
     volumes:
       - /var/www/geo.leetcode.uz/media:/app/media
       - /var/www/geo.leetcode.uz/static:/app/staticfiles
@@ -29,26 +29,27 @@ services:
     build:
       context: .
       dockerfile: ./compose/production/postgres/Dockerfile
-    image: chop_geo_production_postgres
+    image: clinic_production_postgres
     volumes:
-      - geo_production_postgres_data:/var/lib/postgresql/data
-      - geo_production_postgres_data_backups:/backups
+      - clinic_production_postgres_data:/var/lib/postgresql/data
+      - clinic_production_postgres_data_backups:/backups
     env_file:
       - ./.envs/.production/.postgres
 
   redis:
     image: docker.io/redis:6
     volumes:
-      - geo_production_redis_data:/data
+      - clinic_production_redis_data:/data
 
   celeryworker:
     <<: *django
-    image: chop_geo_production_celeryworker
+    image: clinic_production_celeryworker
     command: /start-celeryworker
     ports: [ ]
 
   celerybeat:
     <<: *django
-    image: chop_geo_production_celerybeat
+    image: clinic_production_celerybeat
     command: /start-celerybeat
     ports: [ ]
+

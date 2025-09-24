@@ -1,7 +1,7 @@
 services:
   docs:
-    image: chop_geo_local_docs
-    container_name: chop_geo_local_docs
+    image: clinic_local_docs
+    container_name: clinic_local_docs
     build:
       context: .
       dockerfile: ./compose/local/docs/Dockerfile
@@ -10,7 +10,7 @@ services:
     volumes:
       - ./docs:/docs:z
       - ./config:/app/config:z
-      - ./chop_geo:/app/chop_geo:z
+      - ./apps:/app/apps:z
     ports:
       - '9000:9000'
     command: /start-docs

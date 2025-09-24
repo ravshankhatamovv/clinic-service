@@ -4,7 +4,8 @@ USE_DOCKER=yes
 IPYTHONDIR=/app/.ipython
 # Redis
 # ------------------------------------------------------------------------------
-REDIS_URL=redis://redis:6379/0
+REDIS_URL=redis://clinic_redis:6379/0
+
 
 # Celery
 # ------------------------------------------------------------------------------
@@ -12,3 +13,4 @@ REDIS_URL=redis://redis:6379/0
 # Flower
 CELERY_FLOWER_USER=debug
 CELERY_FLOWER_PASSWORD=debug
+DJANGO_SECRET_KEY=npnm9VN8koi4qLdLJi3hMMmfGPDKVHsaK0UPFevkAFejMsP6UJIWdCpQzhUI7GB4

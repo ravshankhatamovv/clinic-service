@@ -1,0 +1,75 @@
+volumes:
+  clinic_local_postgres_data: {}
+  clinic_local_postgres_data_backups: {}
+  clinic_local_redis_data: {}
+
+services:
+  django: &django
+    build:
+      context: .
+      dockerfile: ./compose/local/django/Dockerfile
+    image: clinic_local_django
+    container_name: clinic_local_django
+    depends_on:
+      - clinic_postgres
+      - clinic_redis
+      - clinic_grpc
+    volumes:
+      - .:/app:z
+    env_file:
+      - ./.envs/.local/.django
+      - ./.envs/.local/.postgres
+    ports:
+      - '8001:8000'
+    command: /start
+
+    networks:
+      - clinic_net 
+
+
+  clinic_grpc:
+    build:
+      context: .
+      dockerfile: ./compose/local/django/Dockerfile
+    container_name: clinic_grpc
+    command: python manage.py run_grpc_server
+    ports:
+      - "50051:50051"
+    depends_on:
+      - clinic_postgres
+      - clinic_redis
+    networks:
+      - clinic_net
+    env_file:
+      - ./.envs/.local/.django
+      - ./.envs/.local/.postgres
+
+
+  clinic_postgres:
+    build:
+      context: .
+      dockerfile: ./compose/production/postgres/Dockerfile
+    image: clinic_production_postgres
+    container_name: clinic_local_postgres
+    volumes:
+      - clinic_local_postgres_data:/var/lib/postgresql/data
+      - clinic_local_postgres_data_backups:/backups
+    env_file:
+      - ./.envs/.local/.postgres
+    networks:
+      - clinic_net
+
+
+  clinic_redis:
+    image: docker.io/redis:6
+    container_name: clinic_local_redis
+    volumes:
+      - clinic_local_redis_data:/data
+    networks:
+      - clinic_net
+
+
+
+networks:
+  clinic_net:
+    external: true

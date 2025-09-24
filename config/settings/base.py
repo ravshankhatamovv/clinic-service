@@ -6,8 +6,8 @@ from pathlib import Path
 import environ
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
-# chop_geo/
-APPS_DIR = BASE_DIR / "chop_geo"
+# apps/
+APPS_DIR = BASE_DIR / "apps"
 env = environ.Env()
 
 READ_DOT_ENV_FILE = env.bool("DJANGO_READ_DOT_ENV_FILE", default=False)
@@ -63,11 +63,13 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # https://docs.djangoproject.com/en/dev/ref/settings/#root-urlconf
 ROOT_URLCONF = "config.urls"
 # https://docs.djangoproject.com/en/dev/ref/settings/#wsgi-application
-WSGI_APPLICATION = "config.wsgi.application"
+# WSGI_APPLICATION = "config.wsgi.application"
+ASGI_APPLICATION = "config.asgi.application"
 
 # APPS
 # ------------------------------------------------------------------------------
 DJANGO_APPS = [
+    "daphne",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -89,10 +91,7 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
-    "chop_geo.users",
-    "chop_geo.trajectories",
-    "chop_geo.bluetooth",
-    "chop_geo.billing",
+    "apps.clinic",
     # Your stuff: custom apps go here
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
@@ -101,7 +100,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 # MIGRATIONS
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#migration-modules
-MIGRATION_MODULES = {"sites": "chop_geo.contrib.sites.migrations"}
+MIGRATION_MODULES = {"sites": "apps.contrib.sites.migrations"}
 
 # AUTHENTICATION
 # ------------------------------------------------------------------------------
@@ -110,7 +109,7 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#auth-user-model
-AUTH_USER_MODEL = "users.User"
+# AUTH_USER_MODEL = "users.User"
 # https://docs.djangoproject.com/en/dev/ref/settings/#login-redirect-url
 LOGIN_REDIRECT_URL = "users:redirect"
 # https://docs.djangoproject.com/en/dev/ref/settings/#login-url
@@ -129,7 +128,7 @@ PASSWORD_HASHERS = [
 # https://docs.djangoproject.com/en/dev/ref/settings/#auth-password-validators
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+    "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
@@ -232,7 +231,7 @@ EMAIL_TIMEOUT = 5
 # Django Admin URL.
 ADMIN_URL = "admin/"
 # https://docs.djangoproject.com/en/dev/ref/settings/#admins
-ADMINS = [("""Kairat Sultan""", "productgsm@gmail.com")]
+ADMINS = [("""Kamizukashi Ikato""", "productgsm@gmail.com")]
 # https://docs.djangoproject.com/en/dev/ref/settings/#managers
 MANAGERS = ADMINS
 
@@ -299,9 +298,10 @@ CELERY_TASK_SEND_SENT_EVENT = True
 # django-rest-framework - https://www.django-rest-framework.org/api-guide/settings/
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        "apps.clinic.authentication.CustomJWTAuthentication",
     ),
-    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
+
+    # "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
@@ -311,8 +311,8 @@ CORS_URLS_REGEX = r"^/api/.*$"
 # By Default swagger ui is available only to admin user(s). You can change permission classes to change that
 # See more configuration options at https://drf-spectacular.readthedocs.io/en/latest/settings.html#settings
 SPECTACULAR_SETTINGS = {
-    "TITLE": "Chop Geo API",
-    "DESCRIPTION": "Documentation of API endpoints of Chop Geo",
+    "TITLE": "Shifoxona API for clinic service",
+    "DESCRIPTION": "Documentation of API endpoints of Shifoxana",
     "VERSION": "1.0.0",
     "SERVE_PERMISSIONS": ["rest_framework.permissions.AllowAny"],
     "SCHEMA_PATH_PREFIX": "/api/",
@@ -325,9 +325,25 @@ DJOSER = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=10),
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=15),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'UPDATE_LAST_LOGIN': False,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "SIGNING_KEY": "npnm9VN8koi4qLdLJi3hMMmfGPDKVHsaK0UPFevkAFejMsP6UJIWdCpQzhUI7GB4",  
+    "ALGORITHM": "HS256",
+}
+
+#  Redis config
+# -----------------------------------------------------------------------------------
+REDIS_URL=env("REDIS_URL", default='127.0.0.1:6379')
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [(REDIS_URL)],
+        },
+    },
 }

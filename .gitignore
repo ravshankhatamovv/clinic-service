@@ -272,7 +272,7 @@ tags
 dump.rdb
 
 ### Project template
-chop_geo/media/
+apps/media/
 
 .pytest_cache/
 .ipython/

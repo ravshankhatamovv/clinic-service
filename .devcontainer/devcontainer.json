@@ -1,6 +1,6 @@
 // For format details, see https://containers.dev/implementors/json_reference/
 {
-    "name": "chop_geo_dev",
+    "name": "clinic_dev",
     "dockerComposeFile": [
         "../docker-compose.local.yml"
     ],
